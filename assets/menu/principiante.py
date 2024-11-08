@@ -35,7 +35,7 @@ def iniciar_juego():
         fondo_menu = pygame.transform.scale(fondo_menu, (ANCHO_VENTANA, ALTO_VENTANA))  # Escalar la imagen al tamaño de la ventana
     except pygame.error as e:
         print(f"No se pudo cargar la imagen de fondo: {e}")
-        fondo_menu = None  # Asignar None si no se puede cargar la imagen
+        fondo_menu = None
 
     # Tamaño de las imágenes detrás del texto
     imagen_ancho = 200
@@ -57,14 +57,23 @@ def iniciar_juego():
     seleccion = 0  # Opción seleccionada inicialmente
     anterior_seleccion = seleccion  # Para detectar cambios de selección
 
+    # Variables para el movimiento del fondo
+    fondo_x = 0  # Posición inicial del fondo
+    velocidad_fondo = 1  # Velocidad del movimiento del fondo
+
     def dibujar_menu():
         # Dibujar fondo
         if fondo_menu:
-            ventana.blit(fondo_menu, (0, 0))  # Dibujar la imagen de fondo
+            ventana.blit(fondo_menu, (fondo_x, 0))  # Dibujar la imagen de fondo
+            ventana.blit(fondo_menu, (fondo_x + ANCHO_VENTANA, 0))  # Dibujar el fondo nuevamente para el efecto de bucle
         
         # Dibujar título
-        titulo_texto = FUENTE_TEXTO.render("Elegir nivel", True, (255,0,0))  # Cambiar el color del texto del título
+        titulo_texto = FUENTE_TEXTO.render("Elegir nivel", True, (255, 0, 0))  # Cambiar el color del texto del título
         ventana.blit(titulo_texto, (ANCHO_VENTANA // 2 - titulo_texto.get_width() // 2, 100))
+        
+        
+        titulo_texto = FUENTE_TEXTO.render("(Principiante)", True, (255, 0, 0))  # Cambiar el color del texto del título
+        ventana.blit(titulo_texto, (ANCHO_VENTANA // 2 - titulo_texto.get_width() // 2, 180))
         
         # Dibujar opciones
         for i, opcion in enumerate(opciones):
@@ -87,6 +96,28 @@ def iniciar_juego():
 
     # Bucle principal
     while True:
+        # Actualizar la posición del fondo
+        fondo_x -= velocidad_fondo  # Mover el fondo a la izquierda
+        if fondo_x <= -ANCHO_VENTANA:  # Si el fondo se ha movido completamente
+            fondo_x = 0  # Reiniciar la posición
+
+        mouse_pos = pygame.mouse.get_pos()  # Obtener posición del mouse
+        seleccion_anterior = seleccion  # Guardar la selección anterior
+
+        # Detectar hover con el mouse
+        for i in range(len(opciones)):
+            x_opcion = ANCHO_VENTANA // 2 - imagen_ancho // 2
+            y_opcion = 250 + i * 100
+
+            # Verificar si el mouse está sobre la opción
+            if x_opcion <= mouse_pos[0] <= x_opcion + imagen_ancho and y_opcion <= mouse_pos[1] <= y_opcion + imagen_alto:
+                seleccion = i
+                break  # Salir del bucle al encontrar la opción
+
+        # Reproducir sonido de hover solo si la selección ha cambiado
+        if seleccion != seleccion_anterior:
+            pygame.mixer.Sound.play(sonido_hover)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -95,8 +126,10 @@ def iniciar_juego():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:  # Tecla arriba
                     seleccion = (seleccion - 1) % len(opciones)
+                    pygame.mixer.Sound.play(sonido_hover)
                 elif event.key == pygame.K_DOWN:  # Tecla abajo
                     seleccion = (seleccion + 1) % len(opciones)
+                    pygame.mixer.Sound.play(sonido_hover)
                 elif event.key == pygame.K_RETURN:  # Tecla Enter
                     pygame.mixer.Sound.play(sonido_seleccion)  # Reproducir sonido de selección
                     if seleccion == 0:  # Nivel 1
@@ -116,14 +149,31 @@ def iniciar_juego():
                         sys.exit()  # Salir del programa
                     elif seleccion == 3:  # Regresar
                         print("Regresando al menú principal...")
+                        pygame.quit()
                         os.system('python assets/menu/jugar.py')  # Ejecutar el script del menú principal
-                        pygame.quit()  # Cerrar la ventana actual
-                        sys.exit()
 
-        # Reproducir sonido de hover cuando cambie la selección
-        if seleccion != anterior_seleccion:
-            pygame.mixer.Sound.play(sonido_hover)
-            anterior_seleccion = seleccion
+            if event.type == pygame.MOUSEBUTTONDOWN:  # Detectar clic del mouse
+                if event.button == 1:  # Botón izquierdo
+                    pygame.mixer.Sound.play(sonido_seleccion)  # Reproducir sonido de selección
+                    if seleccion == 0:  # Nivel 1
+                        print("Seleccionando Nivel 1...")
+                        os.system('python assets/niveles/principiante/nivel1/nivel1.py')
+                        pygame.quit()
+                        sys.exit()
+                    elif seleccion == 1:  # Nivel 2
+                        print("Seleccionando Nivel 2...")
+                        os.system('python assets/niveles/principiante/nivel2/nivel2.py')
+                        pygame.quit()
+                        sys.exit()
+                    elif seleccion == 2:  # Nivel 3
+                        print("Seleccionando Nivel 3...")
+                        os.system('python assets/niveles/principiante/nivel3/nivel3.py')
+                        pygame.quit()
+                        sys.exit()
+                    elif seleccion == 3:  # Regresar
+                        print("Regresando al menú principal...")
+                        pygame.quit()
+                        os.system('python assets/menu/jugar.py')
 
         dibujar_menu()  # Dibujar menú
 

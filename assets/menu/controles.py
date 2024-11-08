@@ -26,7 +26,7 @@ def iniciar_juego():
 
     # Crear ventana
     ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA))
-    pygame.display.set_caption("Pesca-Dos (Principiante)")
+    pygame.display.set_caption("Pesca-Dos (Controles)")
 
     # Cargar imagen de fondo
     try:
@@ -102,9 +102,8 @@ def iniciar_juego():
                     pygame.mixer.Sound.play(sonido_seleccion)  # Reproducir sonido de selección
                     if seleccion == 0:  # Regresar
                         print("Seleccionando Nivel 1...")
+                        pygame.quit()
                         os.system('python assets/menu/opciones.py')  # Ejecutar el script de Nivel 1
-                        pygame.quit()  # Cerrar la ventana actual
-                        sys.exit()  # Salir del programa
 
                 elif event.key == pygame.K_ESCAPE or event.key == pygame.K_LEFT:  # Tecla ESC
                     pygame.mixer.Sound.play(sonido_seleccion)

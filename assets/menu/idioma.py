@@ -38,7 +38,7 @@ except pygame.error as e:
 
 #   nombre del juego
 ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA))
-pygame.display.set_caption("Pesca-Dos (Jugar)")
+pygame.display.set_caption("Pesca-Dos (Idioma)")
 
 # Cargar imagen de fondo
 try:
@@ -64,12 +64,10 @@ except pygame.error as e:
     imagen_normal = imagen_hover = None
 
 # Opciones del menú
-opciones = ["Español", "Ingles",]
+opciones = ["Español", "Ingles", "Regresar"]
 seleccion = 0  # Opción seleccionada inicialmente
 anterior_seleccion = seleccion  # Para detectar cambios de selección
 
-uk=pygame.image.load("assets/menu/uk.png")
-uk=pygame.transform.scale(100,100)
 
 def dibujar_menu():
     # Dibujar fondo
@@ -77,7 +75,7 @@ def dibujar_menu():
         ventana.blit(fondo_menu, (0, 0))  # Dibujar la imagen de fondo
     
     # Dibujar título
-    titulo_texto = FUENTE_TEXTO.render("Dificultad", True, (255,0,0))  # Cambiar el color del texto del título
+    titulo_texto = FUENTE_TEXTO.render("Elegir idioma", True, (255,0,0))  # Cambiar el color del texto del título
     ventana.blit(titulo_texto, (ANCHO_VENTANA // 2 - titulo_texto.get_width() // 2, 80))
     
     # Dibujar opciones
@@ -114,24 +112,17 @@ while True:
             elif event.key == pygame.K_RETURN:  # Tecla Enter
                 pygame.mixer.Sound.play(sonido_seleccion)  # Reproducir sonido de selección
                 if seleccion == 0:  # Principiante
-                    print("Seleccionando modo Principiante...")
-                    os.system('python assets/menu/principiante.py')  # Ejecutar el script de principiante.py
-                    pygame.quit()  # Cerrar la ventana actual
-                    sys.exit()  # Salir del programa
+                    print("Cambiando a español")
 
                 elif seleccion == 1:  # Intermedio
-                    print("Seleccionando modo Intermedio...")
+                    print("Cambiando a inglés")
                     # Lógica para el modo Intermedio
 
                 elif seleccion == 2:  # Avanzado
-                    print("Seleccionando modo Avanzado...")
-                    # Lógica para el modo Avanzado
+                    print("Regresando al menú de Opciones")
+                    pygame.quit()
+                    os.system('python assets/menu/opciones.py');                    # Lógica para el modo Avanzado
 
-                elif seleccion == 3:  # Regresar
-                    print("Regresando al menú principal...")
-                    os.system('python menu.py')  # Ejecutar el script del menú principal
-                    pygame.quit()  # Cerrar la ventana actual
-                    sys.exit()  # Salir del programa
 
     # Reproducir sonido de hover cuando cambie la selección
     if seleccion != anterior_seleccion:
