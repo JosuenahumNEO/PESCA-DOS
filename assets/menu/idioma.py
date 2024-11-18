@@ -1,26 +1,22 @@
 import pygame
 import sys
 import os
-
+import json  # Importar el módulo para leer JSON
 
 # Configuración del sistema
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))#para saltar carpetas hacia arriba
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))  # Para saltar 3 carpetas hacia arriba
 
-
-
-
+# Inicializar Pygame
 pygame.init()
 pygame.mixer.init()
 
 # Definir constantes
 ANCHO_VENTANA = 1200
 ALTO_VENTANA = 600
-#COLOR DEL TEXTO
-
 COLOR_TEXTO_NORMAL = (150, 77, 3)  # Color del texto predeterminado
 COLOR_TEXTO_HOVER = (255, 255, 255)  # Color del texto cuando está en hover
 
-# Cargar la fuente personalizada desde "assets/fonts/press.ttf"
+# Cargar la fuente personalizada
 try:
     FUENTE_TEXTO = pygame.font.Font("assets/fonts/press.ttf", 50)
     FUENTE_OPCIONES = pygame.font.Font("assets/fonts/press.ttf", 20)
@@ -36,7 +32,29 @@ except pygame.error as e:
     print(f"No se pudieron cargar los sonidos: {e}")
     sys.exit()
 
-#   nombre del juego
+# Cargar el archivo JSON de idiomas
+def cargar_idioma(idioma):
+    try:
+        with open("idioma.json", "r", encoding="utf-8") as file:
+            idiomas = json.load(file)
+        return idiomas.get(idioma, idiomas["es"])  # Si no encuentra el idioma, carga el español
+    except json.JSONDecodeError as e:
+        print(f"Error en el formato del JSON: {e}")
+    except FileNotFoundError as e:
+        print(f"No se pudo encontrar el archivo de idiomas: {e}")
+    except Exception as e:
+        print(f"Error al cargar el archivo de idiomas: {e}")
+    return {}
+
+# Cargar textos en español por defecto
+textos = cargar_idioma("es")  # Inicialmente se carga el idioma español
+
+# Opciones del menú
+opciones = [textos["español"], textos["ingles"], textos["regresar"]]
+seleccion = 0  # Opción seleccionada inicialmente
+anterior_seleccion = seleccion  # Para detectar cambios de selección
+
+# Configuración de la ventana
 ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA))
 pygame.display.set_caption("Pesca-Dos (Idioma)")
 
@@ -63,19 +81,13 @@ except pygame.error as e:
     print(f"No se pudieron cargar las imágenes para las opciones: {e}")
     imagen_normal = imagen_hover = None
 
-# Opciones del menú
-opciones = ["Español", "Ingles", "Regresar"]
-seleccion = 0  # Opción seleccionada inicialmente
-anterior_seleccion = seleccion  # Para detectar cambios de selección
-
-
 def dibujar_menu():
     # Dibujar fondo
     if fondo_menu:
         ventana.blit(fondo_menu, (0, 0))  # Dibujar la imagen de fondo
     
     # Dibujar título
-    titulo_texto = FUENTE_TEXTO.render("Elegir idioma", True, (255,0,0))  # Cambiar el color del texto del título
+    titulo_texto = FUENTE_TEXTO.render(textos["idioma"], True, (255,0,0))  # Cambiar el color del texto del título
     ventana.blit(titulo_texto, (ANCHO_VENTANA // 2 - titulo_texto.get_width() // 2, 80))
     
     # Dibujar opciones
@@ -97,32 +109,44 @@ def dibujar_menu():
 
     pygame.display.flip()  # Actualizar pantalla
 
-# Bucle principal hover
+# Función para detectar si el mouse está sobre una opción
+def obtener_opcion_con_mouse(mouse_pos):
+    for i, opcion in enumerate(opciones):
+        x_opcion = ANCHO_VENTANA // 2 - imagen_ancho // 2
+        y_opcion = 200 + i * 80
+        rect_opcion = pygame.Rect(x_opcion, y_opcion, imagen_ancho, imagen_alto)
+        
+        # Comprobar si el mouse está dentro del área del botón
+        if rect_opcion.collidepoint(mouse_pos):
+            return i
+    return None
+
+# Bucle principal con detección de mouse
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:  # Tecla arriba
-                seleccion = (seleccion - 1) % len(opciones)
-            elif event.key == pygame.K_DOWN:  # Tecla abajo
-                seleccion = (seleccion + 1) % len(opciones)
-            elif event.key == pygame.K_RETURN:  # Tecla Enter
+        if event.type == pygame.MOUSEMOTION:  # Movimiento del mouse
+            mouse_pos = event.pos
+            seleccion = obtener_opcion_con_mouse(mouse_pos)  # Cambiar la opción seleccionada según la posición del mouse
+
+        if event.type == pygame.MOUSEBUTTONDOWN:  # Click del mouse
+            if seleccion is not None:
                 pygame.mixer.Sound.play(sonido_seleccion)  # Reproducir sonido de selección
-                if seleccion == 0:  # Principiante
+                if seleccion == 0:  # Español
                     print("Cambiando a español")
-
-                elif seleccion == 1:  # Intermedio
+                    textos = cargar_idioma("es")
+                    opciones = [textos["español"], textos["ingles"], textos["regresar"]]
+                elif seleccion == 1:  # Inglés
                     print("Cambiando a inglés")
-                    # Lógica para el modo Intermedio
-
-                elif seleccion == 2:  # Avanzado
+                    textos = cargar_idioma("en")
+                    opciones = [textos["español"], textos["ingles"], textos["regresar"]]
+                elif seleccion == 2:  # Regresar
                     print("Regresando al menú de Opciones")
                     pygame.quit()
-                    os.system('python assets/menu/opciones.py');                    # Lógica para el modo Avanzado
-
+                    os.system('python assets/menu/opciones.py')
 
     # Reproducir sonido de hover cuando cambie la selección
     if seleccion != anterior_seleccion:

@@ -22,114 +22,123 @@ except pygame.error as e:
 try:
     sonido_hover = pygame.mixer.Sound("assets/musica/boton.mp3")
     sonido_seleccion = pygame.mixer.Sound("assets/musica/golpe_2.mp3")
-    sonido_video = pygame.mixer.Sound("assets/menu/logo.mp3")
-    
+    sonido_video = pygame.mixer.Sound("assets/menu/logo.mp3")  # Sonido del logo
 except pygame.error as e:
     print(f"No se pudieron cargar los sonidos: {e}")
     sys.exit()
 
+# Crear ventana
 ventana = pygame.display.set_mode((constantes.ANCHO_VENTANA, constantes.ALTO_VENTANA))
 pygame.display.set_caption("Pesca-Dos (Menú)")
 
 # Cargar imagen de fondo
 try:
-    fondo_menu = pygame.image.load("assets/menu/menu.jpeg")
+    fondo_menu = pygame.image.load("assets/menu/menu.png")
     fondo_menu = pygame.transform.scale(fondo_menu, (constantes.ANCHO_VENTANA, constantes.ALTO_VENTANA))
 except pygame.error as e:
     print(f"No se pudo cargar la imagen de fondo: {e}")
     fondo_menu = None
 
+# Cargar imágenes para "Jugar"
 try:
-    imagen_jugar = pygame.image.load("assets/menu/f(2).png")
-    imagen_jugar = pygame.transform.scale(imagen_jugar, (200, 60))
-
-    imagen_hover = pygame.image.load("assets/menu/f-hover(2).png")
-    imagen_hover = pygame.transform.scale(imagen_hover, (200, 60))
+    imagen_jugar = pygame.image.load("assets/menu/f(inicio).png")
+    imagen_hover = pygame.image.load("assets/menu/f-hover(inicio).png")
 except pygame.error as e:
     print(f"No se pudieron cargar las imágenes para Jugar: {e}")
     imagen_jugar = imagen_hover = None
 
-# Reproduce el video solo si se debe mostrar
+# Opciones del menú
+opciones = ["Jugar", "Opciones", "Salir"]
+seleccion = 0  # Opción seleccionada inicialmente
+anterior_seleccion = seleccion  # Para detectar cambios de selección
+
+# Función para ejecutar los scripts usando os.system()
+def ejecutar_script(script):
+    os.system(f'python {script}')  # Ejecutamos el script en un nuevo proceso
+    sys.exit()  # Terminamos el proceso actual de Pygame
+
+# Función para cargar y reproducir el video de inicio
 def reproducir_video_pygame(ruta_video):
     cap = cv2.VideoCapture(ruta_video)
     if not cap.isOpened():
         print(f"No se pudo cargar el video: {ruta_video}")
         return
+    
+    clock = pygame.time.Clock()  # Usar pygame.Clock() para controlar la velocidad del video
 
-    pygame.mixer.Sound.play(sonido_video)
+    # Reproducir el sonido del logo
+    sonido_video.play()
 
-    clock = pygame.time.Clock()
     while cap.isOpened():
         ret, frame = cap.read()
-        if not ret:
-            break
+        if ret:
+            # Convertir el frame de BGR (OpenCV) a RGB (pygame)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            
+            # Convertir a superficie de Pygame
+            frame_surface = pygame.surfarray.make_surface(frame_rgb.swapaxes(0, 1))
+            
+            # Mostrar el video en la ventana de Pygame
+            ventana.blit(frame_surface, (0, 0))  # Dibuja el video en la parte superior izquierda
+            pygame.display.flip()
 
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_surface = pygame.surfarray.make_surface(frame_rgb.swapaxes(0, 1))
+            # Controlar la velocidad de los fotogramas del video (FPS)
+            clock.tick(30)  # Limitar a 30 fotogramas por segundo, ajusta según lo necesario
 
-        ventana.blit(pygame.transform.scale(frame_surface, (constantes.ANCHO_VENTANA, constantes.ALTO_VENTANA)), (0, 0))
-        pygame.display.update()
+            # Salir si se presiona una tecla o si se cierra la ventana
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or event.type == pygame.KEYDOWN:
+                    cap.release()
+                    pygame.quit()
+                    sys.exit()
+        else:
+            break  # Si no hay más frames, se detiene el video
+    
+    cap.release()  # Liberar el recurso del video al finalizar
 
-        clock.tick(30)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                cap.release()
-                pygame.quit()
-                sys.exit()
-
-    cap.release()
-
-# Inicializar el tiempo para el retraso
-tiempo_inicio = pygame.time.get_ticks()
-
-
-
-opciones = ["Jugar", "Opciones", "Salir"]
-seleccion = 0
-anterior_seleccion = seleccion
-
+# Función para dibujar el menú
 def dibujar_menu():
+    # Escalar la imagen de fondo
     if fondo_menu:
-        ventana.blit(fondo_menu, (0, 0))
-    
-    #titulo_texto = FUENTE_TEXTO.render("Pesca-Dos (¡Beta!)", True, (210, 219, 42))
-    #ventana.blit(titulo_texto, (constantes.ANCHO_VENTANA // 2 - titulo_texto.get_width() // 2, 100))
-    
+        fondo_menu_escalado = pygame.transform.scale(fondo_menu, ventana.get_size())
+        ventana.blit(fondo_menu_escalado, (0, 0))
+
+    # Calcular posición y tamaño de las opciones
     for i, opcion in enumerate(opciones):
-        x_opcion = constantes.ANCHO_VENTANA // 2 - 50
-        y_opcion = 250 + i * 60
+        factor_escala = ventana.get_height() / constantes.ALTO_VENTANA  # Escalar según la altura
+        x_opcion = ventana.get_width() // 8 - (200 * factor_escala) // 2 - 80  # Ajuste de 80 píxeles hacia la izquierda
+        y_opcion = 250 * factor_escala + i * (100 * factor_escala)  # Aumento de la separación entre botones
 
+        # Escalar las imágenes de los botones
         if seleccion == i and imagen_hover:
-            ventana.blit(imagen_hover, (x_opcion - 50, y_opcion - 15))
-        elif imagen_jugar:
-            ventana.blit(imagen_jugar, (x_opcion - 50, y_opcion - 15))
+            ventana.blit(pygame.transform.scale(imagen_hover, (400 * factor_escala, 150 * factor_escala)), (x_opcion, y_opcion - 35))
+        else:
+            ventana.blit(pygame.transform.scale(imagen_jugar, (400 * factor_escala, 150 * factor_escala)), (x_opcion, y_opcion - 35))
 
-        texto_opcion = FUENTE_OPCIONES.render(opcion, True, (255, 255, 255) if i == seleccion else (150, 77, 3))
-        ventana.blit(texto_opcion, (constantes.ANCHO_VENTANA // 2 - texto_opcion.get_width() // 2, y_opcion))
+        # Calcular el tamaño del texto
+        texto_opcion = FUENTE_OPCIONES.render(opcion, True, (255, 255, 255) if i == seleccion else (252, 186, 3))
+
+        # Calcular la posición del texto para centrarlo en el botón
+        x_texto = x_opcion + (400 * factor_escala) // 2 - texto_opcion.get_width() // 2
+        y_texto = y_opcion + (150 * factor_escala) // 2 - texto_opcion.get_height() // 2 -40  # Centrado verticalmente en el botón
+
+        # Dibujar el texto sobre el botón
+        ventana.blit(texto_opcion, (x_texto, y_texto))
 
     pygame.display.flip()
 
-# Reproducir el video de inicio si se necesita
-if mostrar_video_inicio:
-    reproducir_video_pygame("assets/menu/logo.mp4")
+# Estado de pantalla completa
+pantalla_completa = False
 
+# Reproducir el video de inicio al cargar el juego
+reproducir_video_pygame("assets/menu/logo.mp4")
+
+# Reproducir la música de fondo
+pygame.mixer.music.load("assets/musica/loopmenu.mp3")
+pygame.mixer.music.play(-1)  # Reproducir música en bucle
+
+# Bucle principal
 while True:
-    mouse_pos = pygame.mouse.get_pos()  # Obtener la posición actual del mouse
-
-    # Verificar si han pasado los 3 segundos desde que se inició el juego
-    if pygame.time.get_ticks() - tiempo_inicio >= 3000:  # 3000 ms = 3 segundos
-        if not pygame.mixer.music.get_busy():  # Si la música no está sonando
-            
-            
-            # Detener cualquier música que esté sonando antes de cargar el nivel
-            pygame.mixer.stop()  # Detiene todos los sonidos y música en curso
-
-
-            
-            pygame.mixer.music.load("assets/musica/loopmenu.mp3")  # Cargar música
-            pygame.mixer.music.play(-1)  # Reproducir en bucle
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -138,49 +147,46 @@ while True:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 seleccion = (seleccion - 1) % len(opciones)
+                pygame.mixer.Sound.play(sonido_hover)
             elif event.key == pygame.K_DOWN:
                 seleccion = (seleccion + 1) % len(opciones)
+                pygame.mixer.Sound.play(sonido_hover)
             elif event.key == pygame.K_RETURN:
                 pygame.mixer.Sound.play(sonido_seleccion)
                 if seleccion == 0:  # Jugar
-                    print("Iniciando juego...")
-                    os.system('python assets/menu/jugar.py')
+                    ejecutar_script('assets/menu/jugar.py')
                 elif seleccion == 1:  # Opciones
-                    print("Abriendo opciones...")
-                    mostrar_video_inicio = False  # Cambiar la variable aquí
-                    os.system(f'python assets/menu/opciones.py {int(mostrar_video_inicio)}')
+                    ejecutar_script('assets/menu/opciones.py')
                 elif seleccion == 2:  # Salir
-                    pygame.quit()
                     sys.exit()
-
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            elif event.key == pygame.K_ESCAPE:  # Tecla Escape
+                pygame.quit()
+                sys.exit()
+        # Soporte para mouse
+        if event.type == pygame.MOUSEBUTTONDOWN:  # Detección de clic
+            mouse_x, mouse_y = event.pos
             for i in range(len(opciones)):
-                x_opcion = constantes.ANCHO_VENTANA // 2 - 50
+                x_opcion = ventana.get_width() // 2 - 100  # Ajustar según el tamaño escalado
                 y_opcion = 250 + i * 60
-                if x_opcion - 50 < mouse_pos[0] < x_opcion + 150 and y_opcion - 15 < mouse_pos[1] < y_opcion + 45:
+                if x_opcion < mouse_x < x_opcion + 200 and y_opcion < mouse_y < y_opcion + 60:
                     seleccion = i
                     pygame.mixer.Sound.play(sonido_seleccion)
-                    if seleccion == 0:  # Jugar
-                        print("Iniciando juego...")
-                        os.system('python assets/menu/jugar.py')
-                    elif seleccion == 1:  # Opciones
-                        print("Abriendo opciones...")
-                        mostrar_video_inicio = False  # Cambiar la variable aquí
-                        os.system(f'python assets/menu/opciones.py {int(mostrar_video_inicio)}')
-                    elif seleccion == 2:  # Salir
-                        pygame.quit()
+                    if seleccion == 0:
+                        ejecutar_script('assets/menu/jugar.py')
+                    elif seleccion == 1:
+                        ejecutar_script('assets/menu/opciones.py')
+                    elif seleccion == 2:
                         sys.exit()
 
-    # Cambiar la selección si el mouse está sobre una opción
+    # Detección de hover (fuera del bucle de eventos, pero dentro del bucle principal)
+    mouse_x, mouse_y = pygame.mouse.get_pos()
     for i in range(len(opciones)):
-        x_opcion = constantes.ANCHO_VENTANA // 2 - 50
-        y_opcion = 250 + i * 60
-        if x_opcion - 50 < mouse_pos[0] < x_opcion + 150 and y_opcion - 15 < mouse_pos[1] < y_opcion + 45:
-            seleccion = i
-            break  # Salir del bucle si se encontró un hover
+        x_opcion = ventana.get_width() // 2 - 100  # Ajustar según el tamaño escalado
+        y_opcion = 50 + i * 60
+        if x_opcion < mouse_x < x_opcion + 200 and y_opcion < mouse_y < y_opcion + 60:
+            if seleccion != i:
+                seleccion = i
+                pygame.mixer.Sound.play(sonido_hover)
 
-    if seleccion != anterior_seleccion:
-        pygame.mixer.Sound.play(sonido_hover)
-        anterior_seleccion = seleccion
-
-    dibujar_menu()  # Dibujar menú
+    # Dibujar el menú
+    dibujar_menu()

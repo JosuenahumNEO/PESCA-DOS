@@ -19,7 +19,7 @@ def iniciar_juego():
 
     # Cargar sonidos
     try:
-        sonido_hover = pygame.mixer.Sound("assets/musica/select_level1.mp3")
+        sonido_hover = pygame.mixer.Sound("assets/musica/boton.mp3")
         sonido_seleccion = pygame.mixer.Sound("assets/musica/select_level.mp3")
     except pygame.error as e:
         print(f"No se pudieron cargar los sonidos: {e}")
@@ -31,15 +31,15 @@ def iniciar_juego():
 
     # Cargar imagen de fondo
     try:
-        fondo_menu = pygame.image.load("assets/menu/colima.png")
+        fondo_menu = pygame.image.load("assets/menu/intermedio.png")
         fondo_menu = pygame.transform.scale(fondo_menu, (ANCHO_VENTANA, ALTO_VENTANA))  # Escalar la imagen al tamaño de la ventana
     except pygame.error as e:
         print(f"No se pudo cargar la imagen de fondo: {e}")
         fondo_menu = None
 
     # Tamaño de las imágenes detrás del texto
-    imagen_ancho = 200
-    imagen_alto = 60
+    imagen_ancho = 250
+    imagen_alto = 90
 
     # Cargar imágenes para las opciones
     try:
@@ -78,7 +78,7 @@ def iniciar_juego():
         for i, opcion in enumerate(opciones):
             # Coordenadas de las opciones
             x_opcion = ANCHO_VENTANA // 2 - imagen_ancho // 2
-            y_opcion = 250 + i * 100  # Ajustar la separación vertical entre opciones
+            y_opcion = 250 + i * 90  # Ajustar la separación vertical entre opciones
             
             # Cambiar la imagen y el color del texto dependiendo de si está en hover
             if i == seleccion:

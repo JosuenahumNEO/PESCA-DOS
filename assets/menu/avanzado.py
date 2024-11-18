@@ -31,7 +31,7 @@ def iniciar_juego():
 
     # Cargar imagen de fondo
     try:
-        fondo_menu = pygame.image.load("assets/menu/españa.jpg")
+        fondo_menu = pygame.image.load("assets/menu/avanzado.png")
         fondo_menu = pygame.transform.scale(fondo_menu, (ANCHO_VENTANA, ALTO_VENTANA))  # Escalar la imagen al tamaño de la ventana
     except pygame.error as e:
         print(f"No se pudo cargar la imagen de fondo: {e}")

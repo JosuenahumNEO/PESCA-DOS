@@ -1,7 +1,7 @@
 import pygame
 import sys
 import os
-import random
+import json
 
 # Configuración del sistema
 pygame.init()
@@ -14,9 +14,9 @@ if len(sys.argv) > 1:
 
 # Definir constantes para el menú
 ANCHO_VENTANA = 1200
-ALTO_VENTANA = 600
-COLOR_TEXTO_NORMAL = (255, 0, 0)
-COLOR_TEXTO_HOVER = (255, 255, 255)
+ALTO_VENTANA = 600# Texto normal en blanco sobre fondo caramelo
+COLOR_TEXTO_NORMAL = (255, 255, 255)  # Blanco
+COLOR_TEXTO_HOVER = (255, 223, 129)  # Dorado Claro o Amarillo
 FUENTE_TEXTO = pygame.font.Font("assets/fonts/press.ttf", 40)
 FUENTE_OPCIONES = pygame.font.Font("assets/fonts/press.ttf", 22)
 
@@ -28,55 +28,113 @@ except pygame.error as e:
     print(f"No se pudieron cargar los sonidos: {e}")
     sys.exit()
 
+# Cargar el archivo JSON de idiomas
+def cargar_idioma(idioma):
+    try:
+        with open("idioma.json", "r", encoding="utf-8") as file:
+            idiomas = json.load(file)
+        return idiomas.get(idioma, idiomas["es"])  # Si no encuentra el idioma, carga el español
+    except json.JSONDecodeError as e:
+        print(f"Error en el formato del JSON: {e}")
+    except FileNotFoundError as e:
+        print(f"No se pudo encontrar el archivo de idiomas: {e}")
+    except Exception as e:
+        print(f"Error al cargar el archivo de idiomas: {e}")
+    return {}
+
+# Cambiar el idioma a español por defecto
+textos = cargar_idioma("es")
+
 # Crear ventana
 ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA))
 pygame.display.set_caption("Pesca-Dos (Opciones)")
 
 # Cargar imagen de fondo
 try:
-    fondo_opciones = pygame.image.load("assets/menu/mar_muelle_nuevo2.png")
+    fondo_opciones = pygame.image.load("assets/menu/mar_muelle_nuevo4.png")
     fondo_opciones = pygame.transform.scale(fondo_opciones, (ANCHO_VENTANA, ALTO_VENTANA))
 except pygame.error as e:
     print(f"No se pudo cargar la imagen de fondo: {e}")
     fondo_opciones = None
 
+# Cargar imágenes de botones (normal y hover)
+imagenes_boton = {}
+for i, opcion in enumerate(textos.values()):  # Suponiendo que el número de opciones es igual a la cantidad de imágenes
+    imagen_normal = pygame.image.load(f"assets/menu/f(2).png")
+    imagen_hover = pygame.image.load(f"assets/menu/f-hover(2).png")
+
+    # Redimensionar las imágenes detrás de los botones
+    imagen_normal = pygame.transform.scale(imagen_normal, (280, 100))  # Escalar a 200x50 píxeles
+    imagen_hover = pygame.transform.scale(imagen_hover, (280, 98))    # Escalar a 200x50 píxeles
+
+    imagenes_boton[i] = {"normal": imagen_normal, "hover": imagen_hover}
+
 # Cargar animaciones del gato
 animaciones = []
 for i in range(2):
     try:
+        # Asegúrate de que las rutas de las imágenes son correctas
         img = pygame.image.load(f"assets/personajes/naranjo/cat_{i}.png")
-        img = pygame.transform.scale(img, (160, 160))  # Escalar a 150x150
+        img = pygame.transform.scale(img, (160, 160))  # Escalar a 160x160
         animaciones.append(img)
     except pygame.error as e:
         print(f"No se pudo cargar la imagen: {e}")
+        animaciones = []  # Aseguramos que animaciones esté vacío si hay un error
+        break
 
-# Opciones del menú
-opciones = ["Idioma", "Historia", "Controles", "Regresar"]
-seleccion = 0
-anterior_seleccion = seleccion
+# Verificar que animaciones tenga contenido antes de usarla
+if not animaciones:
+    print("Error: Las imágenes del gato no se cargaron correctamente.")
+    sys.exit()  # Salir si no se pudo cargar las imágenes
+
+# Opciones del menú (Las opciones ahora son dinámicas según el idioma)
+opciones = [textos["idioma"], textos["historia"], textos["controles"], textos["regresar"]]
+
+# Inicializar la variable seleccion con un valor válido
+seleccion = 0  # Se asegura que 'seleccion' tenga un valor inicial válido
 
 # Variables para el movimiento del fondo y el gato
 posicion_fondo_x = -20
 velocidad_fondo = 0.2
 posicion_gato_x = 500  # Posición inicial del gato
-frame_gato = 0  # Para controlar el frame de la animación
+frame_gato = 1  # Para controlar el frame de la animación
 direccion_gato = -1  # -1 para izquierda, 1 para derecha
 
 def dibujar_menu():
+    global seleccion  # Aseguramos que seleccion es global
     # Dibujar fondo
     if fondo_opciones:
         ventana.blit(fondo_opciones, (posicion_fondo_x, 0))
         ventana.blit(fondo_opciones, (posicion_fondo_x + ANCHO_VENTANA, 0))
 
     # Dibujar título
-    titulo_texto = FUENTE_TEXTO.render("Opciones", True, (255, 0, 0))
+    titulo_texto = FUENTE_TEXTO.render(textos["opciones"], True, (252, 186, 3))
     ventana.blit(titulo_texto, (ANCHO_VENTANA // 2 - titulo_texto.get_width() // 2, 100))
     
     # Dibujar opciones
     for i, opcion in enumerate(opciones):
         x_opcion = ANCHO_VENTANA // 2 - 100
-        y_opcion = 250 + i * 80
-        
+        y_opcion = 250 + i * 90
+
+        # Detectar si el ratón está sobre la opción
+        #este codigo en teoria no deberia de funcionar pero lo hace
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        if x_opcion <= mouse_x <= x_opcion + 200 and y_opcion + 15 <= mouse_y <= y_opcion + 55:
+            imagen_boton = imagenes_boton[i]["hover"]  # Cambiar a hover
+            if seleccion != i:
+                seleccion = i
+                pygame.mixer.Sound.play(sonido_hover)
+        else:
+            imagen_boton = imagenes_boton[i]["normal"]  # Mostrar imagen normal
+
+        # Si el botón está seleccionado con el teclado, también mostrar la imagen hover
+        if seleccion == i:
+            imagen_boton = imagenes_boton[i]["hover"]
+
+        # Mostrar la imagen del botón detrás del texto
+        ventana.blit(imagen_boton, (x_opcion - 40, y_opcion - 20))
+
+        # Dibujar texto sobre la imagen
         if i == seleccion:
             texto_opcion = FUENTE_OPCIONES.render(opcion, True, COLOR_TEXTO_HOVER)
         else:
@@ -89,7 +147,7 @@ def dibujar_menu():
     if direccion_gato == 1:  # Si va hacia la derecha, invertir imagen
         gato_actual = pygame.transform.flip(gato_actual, True, False)
         
-    ventana.blit(gato_actual, (posicion_gato_x, 460))
+    ventana.blit(gato_actual, (posicion_gato_x, 430))
 
     pygame.display.flip()  # Actualizar pantalla
 
@@ -110,27 +168,21 @@ while True:
             elif event.key == pygame.K_RETURN:
                 pygame.mixer.Sound.play(sonido_seleccion)
                 # Manejo de opciones
-                if seleccion == 0:
+                if seleccion == 0:  # Cambiar idioma
                     print("Abriendo menú de idioma")
-                    
                     pygame.quit()
                     os.system('python assets/menu/idioma.py')
-                    
-                elif seleccion == 1:
+                elif seleccion == 1:  # Historia
                     print("Abriendo historia...")
-                    
                     pygame.quit()
                     os.system('python assets/menu/cinematica/definitivacine.py')
-                elif seleccion == 2:
-                    print("Abriendo menú")
-                    
+                elif seleccion == 2:  # Controles
+                    print("Abriendo controles...")
                     pygame.quit()
                     os.system('python assets/menu/controles.py')
                 elif seleccion == 3:  # Regresar
                     print("Regresando al menú principal...")
-                    
                     pygame.quit()
-                    os.system(f'python menu.py')
 
         # Detectar clic del mouse
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Botón izquierdo del mouse
@@ -144,31 +196,19 @@ while True:
                     # Manejo de opciones
                     if seleccion == 0:
                         print("Abriendo menú de idioma")
+                        pygame.quit()
                         os.system('python assets/menu/idioma1.py')
                     elif seleccion == 1:
                         print("Abriendo historia...")
+                        pygame.quit()
                         os.system('python assets/menu/cinematica/definitivacine.py')
                     elif seleccion == 2:
-                        print("Abriendo menú")
+                        print("Abriendo controles...")
+                        pygame.quit()
                         os.system('python assets/menu/controles.py')
                     elif seleccion == 3:  # Regresar
                         print("Regresando al menú principal...")
-                        os.system('python menu.py')
-                    
-
                         pygame.quit()
-                        sys.exit()
-
-    # Detectar hover del mouse
-    mouse_x, mouse_y = pygame.mouse.get_pos()
-    for i in range(len(opciones)):
-        x_opcion = ANCHO_VENTANA // 2 - 100
-        y_opcion = 250 + i * 80
-        if x_opcion <= mouse_x <= x_opcion + 200 and y_opcion + 15 <= mouse_y <= y_opcion + 55:
-            if seleccion != i:
-                seleccion = i
-                pygame.mixer.Sound.play(sonido_hover)
-            break
 
     # Actualizar posición del fondo
     posicion_fondo_x -= velocidad_fondo

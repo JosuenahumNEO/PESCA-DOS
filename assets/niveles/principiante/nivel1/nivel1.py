@@ -2,7 +2,6 @@ import pygame
 import sys
 import os
 import random
-import subprocess  # Importar subprocess para ejecutar el archivo externo
 
 # Configuración del sistema
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../")))  # para saltar carpetas hacia arriba
@@ -32,10 +31,11 @@ imagen_audio = pygame.image.load("assets/menu/audio.png")
 imagen_noaudio = pygame.image.load("assets/menu/noaudio.png")
 
 # Escalamos las imágenes
-imagen_play = Personaje.escalar_img(imagen_play, 50, 50)
-imagen_pause = Personaje.escalar_img(imagen_pause, 50, 50)
-imagen_audio = Personaje.escalar_img(imagen_audio, 50, 50)
-imagen_noaudio = Personaje.escalar_img(imagen_noaudio, 50, 50)
+tamaño_boton = 70
+imagen_play = Personaje.escalar_img(imagen_play, tamaño_boton, tamaño_boton)
+imagen_pause = Personaje.escalar_img(imagen_pause, tamaño_boton, tamaño_boton)
+imagen_audio = Personaje.escalar_img(imagen_audio, tamaño_boton, tamaño_boton)
+imagen_noaudio = Personaje.escalar_img(imagen_noaudio, tamaño_boton, tamaño_boton)
 
 # Inicialmente, mostrar las imágenes "play" y "audio"
 imagen_boton_pausa = imagen_play
@@ -58,6 +58,12 @@ imagenes_basura = [
 
 # Tamaño general de las imágenes de la basura
 imagenes_basura = [Personaje.escalar_img(img, 90, 80) for img in imagenes_basura]
+
+imagen_contador_basuras = pygame.image.load("assets/items/basura/lata_aplastada.png")
+imagen_contador_basuras = Personaje.escalar_img(imagen_contador_basuras, 50, 50)
+
+imagen_contador_anzuelos = pygame.image.load("assets/items/anzuelo.png")
+imagen_contador_anzuelos = Personaje.escalar_img(imagen_contador_anzuelos, 50, 50)
 
 # Variables del juego
 posiciones_flotantes = [random.randint(50, constantes.ANCHO_VENTANA - 100) for _ in range(constantes.FILAS)]
@@ -89,30 +95,61 @@ anzulos_disponibles = 10  # Contador de anzuelos
 reloj = pygame.time.Clock()
 tiempo = 60  # Tiempo inicial del reloj
 
+pygame.mixer.stop()
 sonido_fondo = pygame.mixer.Sound(constantes.MUSICA_FONDO)  # Música de fondo
 pygame.mixer.Sound.play(sonido_fondo, -1)  # Reproducir música en bucle
 
 # Cargar sonido de "select_level1.mp3"
-sonido_select = pygame.mixer.Sound("assets/musica/select_level1.mp3")
+sonido_select = pygame.mixer.Sound("assets/musica/unpause.mp3")
 
 # Botones rectangulares
 boton_musica_rect = pygame.Rect(10, 110, 50, 50)  # Tamaño del botón de música
 boton_pausa_rect = pygame.Rect(10, 50, 50, 50)  # Tamaño del botón para pausar el juego
+
 
 # Crear el botón "Regresar"
 boton_regresar = pygame.image.load("assets/menu/regresar.jpg")  # Imagen para el botón de regresar
 boton_regresar = Personaje.escalar_img(boton_regresar, 200, 100)
 boton_regresar_rect = boton_regresar.get_rect(center=(constantes.ANCHO_VENTANA // 2, constantes.ALTO_VENTANA // 2 + 100))
 
+# Crear el botón "Siguiente nivel"
+boton_siguiente = pygame.image.load("assets/menu/siguiente.jpg")  # Imagen para el botón de siguiente nivel
+boton_siguiente = Personaje.escalar_img(boton_siguiente, 200, 100)
+boton_siguiente_rect = boton_siguiente.get_rect(center=(constantes.ANCHO_VENTANA // 2, constantes.ALTO_VENTANA // 2 + 200))
+
+# Cargar las imágenes de fin de juego (ajustadas a 600x1200)
+imagen_gameover_tiempo = pygame.image.load("assets/menu/seacaboeltiempo.png")
+imagen_gameover_anzuelos = pygame.image.load("assets/menu/sinanzuelos.png")
+imagen_nivel_completado = pygame.image.load("assets/menu/nivelcompletado.png")
+
+# Escalar las imágenes a 600x1200
+imagen_gameover_tiempo = Personaje.escalar_img(imagen_gameover_tiempo, 1200, 600)
+imagen_gameover_anzuelos = Personaje.escalar_img(imagen_gameover_anzuelos, 1200, 600)
+imagen_nivel_completado = Personaje.escalar_img(imagen_nivel_completado, 1200, 600)
+
+imagen_tiempo = pygame.image.load("assets/menu/f(2).png")  # Imagen del anzuelo 
+imagen_tiempo = Personaje.escalar_img(imagen_tiempo, 550, 150)  # Escalar imagen
+
 ##################  BUCLE PRINCIPAL  ##################
-# Bucle principal
 run = True
 while run:
     reloj.tick(constantes.FPS)  # Controlar FPS
     if not juego_en_pausa and tiempo > 0:  # Si no está en pausa y el tiempo es mayor que 0
         tiempo -= 1 / constantes.FPS  # Decrementar tiempo de 1 en 1
 
-    ventana.blit(constantes.IMG_BACKGROUND, (0, 0))  # Dibujar fondo
+    ventana.blit(constantes.IMG_BACKGROUND, (0, 0))  
+
+    ventana.blit(imagen_tiempo, (-70, -45))  # coordenada donde se coloca la imagen detrás del tiempo
+    
+    boton_musica_rect = pygame.Rect(10, 170, tamaño_boton, tamaño_boton)  # Tamaño dinámico del botón de música
+    boton_pausa_rect = pygame.Rect(10, 90, tamaño_boton, tamaño_boton)  # Tamaño dinámico del botón para pausar el juego
+    
+    ventana.blit(imagen_contador_basuras, (870, 0))  # coordenada donde se coloca la imagen detrás del tiempo
+    ventana.blit(imagen_contador_anzuelos, (980, 50))  # coordenada donde se coloca la imagen detrás del tiempo
+    # Mostrar los botones de pausa y música en la pantalla
+    ventana.blit(imagen_boton_pausa, boton_pausa_rect.topleft)  # Dibujar botón de pausa
+    ventana.blit(imagen_boton_musica, boton_musica_rect.topleft)  # Dibujar botón de música
+
     delta_x = 0  # Inicializa movimiento
 
     # Controlar el movimiento del jugador
@@ -132,29 +169,30 @@ while run:
         jugador.dibujar(ventana)
 
     # Escribir tiempo, puntos y anzuelos
-    texto_tiempo = fuente.render(f'Tiempo: {int(tiempo)}', True, (255, 0, 0))
+    texto_tiempo = fuente.render(f'Tiempo: {int(tiempo)}', True, (0, 0, 0))
     ventana.blit(texto_tiempo, (10, 10))  # posición en la pantalla
 
     # Mostrar los puntos y anzuelos
     texto_puntos = fuente.render(f': {contador_puntos} / 4', True, (255, 0, 0))
-    ventana.blit(texto_puntos, (constantes.ANCHO_VENTANA - texto_puntos.get_width() - 10, 10))  # posición en la pantalla
+    ventana.blit(texto_puntos, (constantes.ANCHO_VENTANA - texto_puntos.get_width() - 10, 10))  # posición en la pantallla
 
     texto_anzuelos = fuente.render(f': {anzulos_disponibles}', True, (255, 0, 0))
-    ventana.blit(texto_anzuelos, (constantes.ANCHO_VENTANA - texto_anzuelos.get_width() - 10, 50))  # posición en la pantalla
+    ventana.blit(texto_anzuelos, (constantes.ANCHO_VENTANA - texto_anzuelos.get_width() - 10, 50))  
 
     # Mover y dibujar objetos flotantes
     flotantes_activos = False
     for i in range(constantes.FILAS):
         x = posiciones_flotantes[i]
         y = alturas_flotantes[i]
-        if not juego_en_pausa and tiempo > 0 and not nivel_completado:
-            if imagenes_flotantes[i] is not None:  # Solo dibujar imágenes que no sean None
-                ventana.blit(imagenes_flotantes[i], (x, y))  # Dibujar imagen flotante
-                x += velocidad_flotante * direcciones_flotantes[i]
-                if x >= constantes.ANCHO_VENTANA - imagenes_flotantes[i].get_width() or x <= 0:
-                    direcciones_flotantes[i] *= -1
-                posiciones_flotantes[i] = x
-                flotantes_activos = True
+        if nivel_completado:  # Si el nivel ha sido completado, no mover objetos flotantes
+            continue
+        if imagenes_flotantes[i] is not None:  # Solo dibujar imágenes que no sean None
+            ventana.blit(imagenes_flotantes[i], (x, y))  # Dibujar imagen flotante
+            x += velocidad_flotante * direcciones_flotantes[i]
+            if x >= constantes.ANCHO_VENTANA - imagenes_flotantes[i].get_width() or x <= 0:
+                direcciones_flotantes[i] *= -1
+            posiciones_flotantes[i] = x
+            flotantes_activos = True
 
     # Mostrar el anzuelo si ha sido lanzado
     if anzuelo_lanzado:
@@ -176,20 +214,25 @@ while run:
     # Mostrar mensaje de fin de juego si se completa el nivel
     if contador_puntos >= 4:
         nivel_completado = True
+        pygame.mixer.Sound.stop(sonido_fondo)  # Detener música principal
+        pygame.mixer.Sound.play(pygame.mixer.Sound("assets/musica/win_sound.mp3"))  # Reproducir sonido de victoria
 
-    # Mensaje final si se quedan sin anzuelos o se completa el nivel
-    if anzulos_disponibles <= 0 or contador_puntos >= 4:
-        juego_en_pausa = True
-        if contador_puntos >= 4:
-            mensaje_final = fuente.render("¡FELICIDADES!, NIVEL 1 COMPLETADO", True, (255, 215, 0))  # Escribir en la pantalla
-            ventana.blit(mensaje_final, (constantes.ANCHO_VENTANA // 2 - mensaje_final.get_width() // 2,
-                                        constantes.ALTO_VENTANA // 2 - mensaje_final.get_height() // 2))
-            # Mostrar botón de regresar
-            ventana.blit(boton_regresar, boton_regresar_rect)
+    # Mostrar el mensaje final si el tiempo llega a 0, los anzuelos se acaban o el nivel se completa
+    if tiempo <= 0:
+        ventana.blit(imagen_gameover_tiempo, (constantes.ANCHO_VENTANA // 2 - imagen_gameover_tiempo.get_width() // 2,
+                                             constantes.ALTO_VENTANA // 2 - imagen_gameover_tiempo.get_height() // 2))
 
-    # Botón de pausa
-    ventana.blit(imagen_boton_pausa, boton_pausa_rect)
-    ventana.blit(imagen_boton_musica, boton_musica_rect)
+    elif anzulos_disponibles <= 0:
+        ventana.blit(imagen_gameover_anzuelos, (constantes.ANCHO_VENTANA // 2 - imagen_gameover_anzuelos.get_width() // 2,
+                                               constantes.ALTO_VENTANA // 2 - imagen_gameover_anzuelos.get_height() // 2))
+
+    elif contador_puntos >= 4:
+        ventana.blit(imagen_nivel_completado, (constantes.ANCHO_VENTANA // 2 - imagen_nivel_completado.get_width() // 2,
+                                              constantes.ALTO_VENTANA // 2 - imagen_nivel_completado.get_height() // 2))
+
+        # Mostrar los botones "Regresar" y "Siguiente nivel"
+        ventana.blit(boton_regresar, boton_regresar_rect.topleft)
+        ventana.blit(boton_siguiente, boton_siguiente_rect.topleft)
 
     pygame.display.flip()  # Actualizar pantalla
 
@@ -199,15 +242,39 @@ while run:
             run = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            # Verificar si el clic es sobre el botón "Regresar"
-            if boton_regresar_rect.collidepoint(event.pos):
-                # Reproducir sonido de "select_level1.mp3" al presionar el botón "Regresar"
-                sonido_select.play()
-                pygame.quit()
-                # Redirigir a "principiante.py"
-                subprocess.Popen(["python", "assets/menu/principiante.py"])
+            if boton_pausa_rect.collidepoint(event.pos):  # Verificar si el clic está sobre el botón de pausa
+                juego_en_pausa = not juego_en_pausa  # Cambiar estado de pausa
+                if juego_en_pausa:
+                    imagen_boton_pausa = imagen_pause  # Cambiar imagen a "pause"
+                    pygame.mixer.Sound.play(pygame.mixer.Sound("assets/musica/unpause.mp3"))
+                else:
+                    imagen_boton_pausa = imagen_play  # Cambiar imagen a "play"
+                    pygame.mixer.Sound.play(pygame.mixer.Sound("assets/musica/pausar.mp3"))
+                
+            elif boton_musica_rect.collidepoint(event.pos):  # Verificar si el clic está sobre el botón de música
+                musica_muted = not musica_muted  # Cambiar estado de música
+                if musica_muted:
+                    pygame.mixer.pause()  # Mutear música
+                    imagen_boton_musica = imagen_noaudio  # Cambiar imagen a "no audio"
+                else:
+                    pygame.mixer.unpause()  # Reanudar música
+                    imagen_boton_musica = imagen_audio  # Cambiar imagen a "audio"
 
-        ###################### Funciones de teclas al ser presionadas ##################################
+            elif boton_regresar_rect.collidepoint(event.pos):  # Verificar si el clic está sobre el botón de "Regresar"
+                # Volver al menú principal o nivel anterior
+                juego_en_pausa = False
+                nivel_completado = False
+                contador_puntos = 0
+                anzulos_disponibles = 10
+                tiempo = 60
+                os.system("main.py")
+                # Cargar lógica o pantallas previas sin cambiar de archivo
+
+            elif boton_siguiente_rect.collidepoint(event.pos):  # Verificar si el clic está sobre el botón de "Siguiente nivel"
+                # Siguiente nivel o transición interna sin ejecutar otro archivo
+                pass
+
+        ###################### Funciones de teclas ##################################
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                 mover_izquierda = True
@@ -217,27 +284,10 @@ while run:
                 anzuelo_lanzado = True
                 anzuelo_posicion = [jugador.forma.x + 35, jugador.forma.y - 20]  # Posición de la lata al lanzarla
                 anzulos_disponibles -= 1  # Disminuir el contador de anzuelos
-            if tiempo == 55:
+            if tiempo == 15:
                 pygame.mixer.Sound.play(pygame.mixer.Sound("assets/musica/alert.mp3"))
-
-            if event.key == pygame.K_p:
-                juego_en_pausa = not juego_en_pausa
-                anzuelo_lanzado = False  # No se puede lanzar el anzuelo
-                if juego_en_pausa:
-                    imagen_boton_pausa = imagen_pause  # Cambiar imagen a "pause"
-                    pygame.mixer.Sound.play(pygame.mixer.Sound("assets/musica/pausar.mp3"))
-                else:
-                    imagen_boton_pausa = imagen_play  # Cambiar imagen a "play"
-                    pygame.mixer.Sound.play(pygame.mixer.Sound("assets/musica/unpause.mp3"))
-            
-            if event.key == pygame.K_m:
-                musica_muted = not musica_muted  # Cambiar estado de música
-                if musica_muted:
-                    pygame.mixer.pause()  # Mutear música
-                    imagen_boton_musica = imagen_noaudio  # Cambiar imagen a "no audio"
-                else:
-                    pygame.mixer.unpause()  # Reanudar música
-                    imagen_boton_musica = imagen_audio  # Cambiar imagen a "audio"
+            if tiempo == 0 or anzulos_disponibles == 0:
+                pygame.mixer.Sound.play(pygame.mixer.Sound("assets/musica/gameover.mp3"))
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_a:
@@ -246,3 +296,4 @@ while run:
                 mover_derecha = False
 
 pygame.quit()  # Cerrar el juego
+sys.exit()
