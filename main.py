@@ -1,15 +1,8 @@
 import pygame
 import sys
-import os
-<<<<<<< HEAD
 import subprocess
 import constantes
 import cv2
-=======
-import cv2
-import constantes
->>>>>>> 2cdf67de6b1c593535456b1379ac5791a8fa5ee1
-
 pygame.init()
 
 COLOR_TEXTO = (0, 0, 0)
@@ -58,18 +51,9 @@ opciones = ["Jugar", "Opciones", "Salir"]
 seleccion = 0  # Opción seleccionada inicialmente
 anterior_seleccion = seleccion  # Para detectar cambios de selección
 
-<<<<<<< HEAD
 # Función para ejecutar los scripts usando subprocess
 def ejecutar_script(script):
-    subprocess.Popen([sys.executable, script])  # Ejecuta el script en un nuevo proceso
-    # No llamamos a sys.exit() aquí, porque no queremos cerrar el menú principal
-=======
-# Función para ejecutar los scripts usando os.system()
-def ejecutar_script(script):
-    os.system(f'python {script}')  # Ejecutamos el script en un nuevo proceso
-    sys.exit()  # Terminamos el proceso actual de Pygame
->>>>>>> 2cdf67de6b1c593535456b1379ac5791a8fa5ee1
-
+    subprocess.Popen([sys.executable, script]) 
 # Función para cargar y reproducir el video de inicio
 def reproducir_video_pygame(ruta_video):
     cap = cv2.VideoCapture(ruta_video)
@@ -118,12 +102,9 @@ def dibujar_menu():
 
     # Calcular posición y tamaño de las opciones
     for i, opcion in enumerate(opciones):
-        factor_escala = ventana.get_height() / constantes.ALTO_VENTANA  # Escalar según la altura
-<<<<<<< HEAD
-        x_opcion = ventana.get_width() // 8 - (200 * factor_escala) // 2 - 80  #80 píxeles hacia la izquierda
-=======
-        x_opcion = ventana.get_width() // 8 - (200 * factor_escala) // 2 - 80  # Ajuste de 80 píxeles hacia la izquierda
->>>>>>> 2cdf67de6b1c593535456b1379ac5791a8fa5ee1
+        factor_escala = ventana.get_height() / constantes.ALTO_VENTANA  # Escala
+
+        x_opcion = ventana.get_width() // 8 - (200 * factor_escala) // 2 - 80  
         y_opcion = 250 * factor_escala + i * (100 * factor_escala)  # Aumento de la separación entre botones
 
         # Escalar las imágenes de los botones
@@ -137,11 +118,8 @@ def dibujar_menu():
 
         # Calcular la posición del texto para centrarlo en el botón
         x_texto = x_opcion + (400 * factor_escala) // 2 - texto_opcion.get_width() // 2
-<<<<<<< HEAD
+
         y_texto = y_opcion + (200 * factor_escala) // 2 - texto_opcion.get_height() // 2 - 70  # Centrado verticalmente en el botón
-=======
-        y_texto = y_opcion + (150 * factor_escala) // 2 - texto_opcion.get_height() // 2 -40  # Centrado verticalmente en el botón
->>>>>>> 2cdf67de6b1c593535456b1379ac5791a8fa5ee1
 
         # Dibujar el texto sobre el botón
         ventana.blit(texto_opcion, (x_texto, y_texto))
@@ -203,11 +181,8 @@ while True:
     mouse_x, mouse_y = pygame.mouse.get_pos()
     for i in range(len(opciones)):
         x_opcion = ventana.get_width() // 2 - 100  # Ajustar según el tamaño escalado
-<<<<<<< HEAD
+
         y_opcion = 250 + i * 60
-=======
-        y_opcion = 50 + i * 60
->>>>>>> 2cdf67de6b1c593535456b1379ac5791a8fa5ee1
         if x_opcion < mouse_x < x_opcion + 200 and y_opcion < mouse_y < y_opcion + 60:
             if seleccion != i:
                 seleccion = i
