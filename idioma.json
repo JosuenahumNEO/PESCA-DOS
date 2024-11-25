@@ -1,0 +1,36 @@
+{
+    "es": {
+        "jugar": "Jugar",
+        "opciones": "Opciones",
+        "salir": "Salir",
+        "principiante": "Principiante",
+        "intermedio": "Intermedio",
+        "avanzado": "Avanzado",
+        "idioma": "Idioma",
+        "historia": "Historia",
+        "controles": "Controles",
+        "regresar": "Regresar",
+        "nivel_1": "Nivel 1",
+        "nivel_2": "Nivel 2",
+        "nivel_3": "Nivel 3",
+        "espaniol": "Español",
+        "ingles": "Inglés"
+    },
+    "en": {
+        "jugar": "Play",
+        "opciones": "Options",
+        "salir": "Exit",
+        "principiante": "Beginner",
+        "intermedio": "Intermediate",
+        "avanzado": "Advanced",
+        "idioma": "Language",
+        "historia": "Story",
+        "controles": "Controls",
+        "regresar": "Back",
+        "nivel_1": "Level 1",
+        "nivel_2": "Level 2",
+        "nivel_3": "Level 3",
+        "espaniol": "Spanish",
+        "ingles": "English"
+    }
+}

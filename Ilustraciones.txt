@@ -1,0 +1,64 @@
+ilustraciones
+
+   HECHAS
+
+    	Naranjo caminando
+    	Mr.Blanco
+    	Fondo de nivel 1,2 y 3 (Principiante)
+    	Muelle solo
+    	Río sin muelle 
+    	Logo de la empresa (Blanco games)
+
+
+    FALTANTES
+
+Nombre del juego (2D en pixelart para el menú)
+
+Botones del menú 
+
+Jugar
+Dificultad
+Regresar
+Ajustes
+Idioma
+ESPAÑOL (Bandera de España)
+ENGLISH (Bandera de UK)
+Sobre nosotros
+Tutorial
+Omitir
+
+
+Regresar       
+Basura (minimo 5 basuras distintas)
+Bola de papel (la que se lanza cuando el jugador pierde)->png
+
+
+
+
+Nombre del juego (2D en pixelart para el menú)
+
+        Botones del menú 
+
+            Jugar
+                  Dificultad
+                  Regresar
+            Ajustes
+                Idioma
+                    ESPAÑOL (Bandera de España)
+                    ENGLISH (Bandera de UK)
+                    Sobre nosotros
+            Tutorial
+                Omitir
+
+    
+
+
+
+            
+
+
+
+
+
+
+
